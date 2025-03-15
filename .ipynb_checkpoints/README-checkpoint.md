@@ -19,16 +19,27 @@
 
 ## Setup Environtment
 - Install Visual Studio Code or any other source code editor
-- If using conda, execute this command on your Command Promp
+- If using conda, execute this command on your Command Prompt
 ```
 conda create --name main-ds python=3.9
 conda activate main-ds
-pip install numpy pandas matplotlib seaborn jupyter streamlit
+pip install -r requirements.txt
 ```
-- If using pipenv, execute this command on your Command Promp
+- If using pipenv, execute this command on your Command Prompt
 ```
+mkdir proyek_analisis_data_python
+cd proyek_analisis_data_python
 pipenv install
 pipenv shell
-pip install numpy pandas matplotlib seaborn jupyter streamlit
-jupyter-notebook .
+pip install -r requirements.txt
+```
+
+### Run streamlit
+1. Clone Repository
+```
+git clone https://github.com/HerlyRyan/proyek_analisis_data_python
+```
+2. Run streamlit app
+```
+streamlit run ./dashboard/dashboard.py
 ```

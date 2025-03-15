@@ -3,52 +3,62 @@ def create_month_recap(df):
     plot_month = df['month'].astype(str)
     plot_year = df['year'].astype(str)
     df['year_month'] = plot_month + ' ' + plot_year
-    df['total_sum'] = df.groupby('year_month')['total'].transform('sum')
+    df['total_sum'] = df.groupby('year_month')['total_rent'].transform('sum')
     return df[['year_month', 'total_sum']]
 
 def create_season_recap(df):
-    season_recap = df.groupby(by='season')[['registered', 'casual']].sum().reset_index()
+    season_recap = df.groupby(by='season')[['registered', 'unregistered']].sum().reset_index()
     return season_recap
 
 def create_weather_recap(df):
     weather_recap = df.groupby(by='weather').agg({
-    'total': 'mean'
+    'total_rent': 'mean'
     }).reset_index()
     return weather_recap
 
 def create_workingday_hour_recap(df):
     filter_workingday = df[(df['workingday'] == 1)]
     workingday_hour_recap = filter_workingday.groupby(by='hour').agg({
-    'total': 'sum'
+    'total_rent': 'sum'
     }).reset_index()
     return workingday_hour_recap
 
 def create_holiday_hour_recap(df):
     filter_holiday = df[(df['holiday'] == 1)|(df['workingday'] == 0)]
     holiday_hour_recap = filter_holiday.groupby(by='hour').agg({
-    'total': 'sum'
+    'total_rent': 'sum'
     }).reset_index()
     return holiday_hour_recap
 
-def create_rfm_recap(df):
-    rfm_df = df.groupby(by='hour', as_index=False).agg({
-    'date': 'max',
-    'instant': 'nunique',
-    'total': 'sum'
+def season_category(df):
+    plot_season = df.groupby(by="season").agg({
+    'total_rent': 'mean'
     })
-    rfm_df.columns = ['hour', 'last_order_date', 'order_count', 'revenue'] # mengganti nama kolom
+    return plot_season
 
-    # perhitungan recency per hari
-    rfm_df['last_order_date'] = rfm_df['last_order_date'].dt.date
-    recent_date = df['date'].dt.date.max()
-    rfm_df['recency'] = rfm_df['last_order_date'].apply(lambda x: (recent_date - x).days)
+def weather_category(df):
+    plot_weather = df.groupby(by='weather').agg({
+    'total_rent': 'mean'
+    }).reset_index()
+    return plot_weather
 
-    rfm_df.drop('last_order_date', axis=1, inplace=True)  # Drop kolom 'last_order_date'
-    return rfm_df
+def categorize_time(hour):
+    if 0 <= hour < 6:
+        return 'Early Morning'
+    elif 7 <= hour < 12:
+        return 'Morning'
+    elif 13 <= hour < 18:
+        return 'Afternoon'
+    else:
+        return 'Night'
+
+def time_category(df):
+    plot_time = df.hour.apply(categorize_time)
+    return plot_time
 
 def create_daily_recap(df):
     daily_recap = df.groupby(by='date').agg({
-        'total': 'sum'
+        'total_rent': 'sum'
     }).reset_index()
     return daily_recap
 
@@ -58,9 +68,9 @@ def create_registered_recap(df):
     }).reset_index()
     return registered_recap
 
-def create_casual_recap(df):
+def create_unregistered_recap(df):
     casual_recap = df.groupby(by='date').agg({
-        'casual': 'sum'
+        'unregistered': 'sum'
     }).reset_index()
     return casual_recap
 

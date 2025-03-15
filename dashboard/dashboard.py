@@ -50,12 +50,14 @@ season_summary = function.create_season_recap(filtered_data)
 weather_summary = function.create_weather_recap(filtered_data)
 workingday_hour_summary = function.create_workingday_hour_recap(filtered_data)
 holiday_hour_summary = function.create_holiday_hour_recap(filtered_data)
-rfm_summary = function.create_rfm_recap(filtered_data)
 daily_summary = function.create_daily_recap(filtered_data)
-casual_summary = function.create_casual_recap(filtered_data)
+unregistered_summary = function.create_unregistered_recap(filtered_data)
 registered_summary = function.create_registered_recap(filtered_data)
 temperature_summary = function.create_temp_recap(filtered_data)
 humidity_summary = function.create_hum_recap(filtered_data)
+seasong_category = function.season_category(filtered_data)
+weather_category = function.weather_category(filtered_data)
+hour_category = function.time_category(filtered_data)
 
 # Build UI
 st.header('Bike Analytics Dashboard')
@@ -65,7 +67,7 @@ st.subheader('Bike Rent Summary')
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    total_users = daily_summary['total'].sum()
+    total_users = daily_summary['total_rent'].sum()
     st.metric('Total Users', value=total_users)
 
 with col2:
@@ -73,8 +75,8 @@ with col2:
     st.metric('Registered Users', value=registered_users)
 
 with col3:
-    casual_users = casual_summary['casual'].sum()
-    st.metric('Casual Users', value=casual_users)
+    unregistered_users = unregistered_summary['unregistered'].sum()
+    st.metric('Unregistered Users', value=unregistered_users)
 
 with col4:
     avg_temp = temperature_summary['temp'].mean()
@@ -115,11 +117,11 @@ with col1:
         ax=ax
     )
     sns.barplot(
-        y='casual', 
+        y='unregistered', 
         x='season',
-        data=season_summary.sort_values(by='casual', ascending=False),
+        data=season_summary.sort_values(by='unregistered', ascending=False),
         color='tab:orange',
-        label='Casual Users',
+        label='Unregistered Users',
         ax=ax
     )
     ax.set_title('Number of Rents by Season', loc='center', fontsize=50)
@@ -134,9 +136,9 @@ with col2:
     fig, ax = plt.subplots(figsize=(20, 10))
 
     sns.barplot(
-        y='total', 
+        y='total_rent', 
         x='weather',
-        data=weather_summary.sort_values(by='total', ascending=False),
+        data=weather_summary.sort_values(by='total_rent', ascending=False),
         ax=ax
     )
     
@@ -153,17 +155,17 @@ st.subheader('Workingday and Holiday Hour Recap')
 col1, col2 = st.columns(2)
 
 with col1:
-    max_workingday_hour = workingday_hour_summary['total'].idxmax()
+    max_workingday_hour = workingday_hour_summary['total_rent'].idxmax()
     fig, ax = plt.subplots(figsize=(20, 10))
 
     sns.barplot(
-        y='total', 
+        y='total_rent', 
         x='hour',
         data=workingday_hour_summary,
         color='tab:blue',
         ax=ax
     )
-    plt.bar(max_workingday_hour, workingday_hour_summary.loc[max_workingday_hour, 'total'], color='tab:red', label='Peak Hour')
+    plt.bar(max_workingday_hour, workingday_hour_summary.loc[max_workingday_hour, 'total_rent'], color='tab:red', label='Peak Hour')
     ax.set_title('Workingday Rent Hour Recap', loc='center', fontsize=50)
     ax.set_ylabel(None)
     ax.set_xlabel(None)
@@ -173,17 +175,17 @@ with col1:
     st.pyplot(fig)
 
 with col2:
-    max_holiday_hour = holiday_hour_summary['total'].idxmax()
+    max_holiday_hour = holiday_hour_summary['total_rent'].idxmax()
     fig, ax = plt.subplots(figsize=(20, 10))
 
     sns.barplot(
-        y='total', 
+        y='total_rent', 
         x='hour',
         data=holiday_hour_summary,
         color='tab:blue',
         ax=ax
     )
-    plt.bar(max_holiday_hour, holiday_hour_summary.loc[max_holiday_hour, 'total'], color='tab:red', label='Peak Hour')
+    plt.bar(max_holiday_hour, holiday_hour_summary.loc[max_holiday_hour, 'total_rent'], color='tab:red', label='Peak Hour')
     ax.set_title('Holiday Rent Hour Recap', loc='center', fontsize=50)
     ax.set_ylabel(None)
     ax.set_xlabel(None)
@@ -192,61 +194,56 @@ with col2:
     ax.legend(fontsize=20)
     st.pyplot(fig)
 
-# RFM Recap
-st.subheader('RFM Recap')
+# Clustering Recap
+st.subheader('Clustering Recap')
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    top_recency = rfm_summary.sort_values(by='recency', ascending=True).head(7)
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(30, 20))
 
     sns.barplot(
-        data=top_recency, 
-        x='hour', 
-        y='recency',
+        data=seasong_category,
+        x='season', 
+        y='total_rent',
         color='tab:blue',
         ax=ax
     )
-    ax.set_ylabel(None)
-    ax.set_xlabel(None)
-    ax.set_title('Recency (days)', loc='center', fontsize=50)
+    ax.set_ylabel('Rata-rata Penyewa Sepeda')
+    ax.set_xlabel('Kategori Musim')
+    ax.set_title('Distribusi Rata-rata Penyewa Sepeda Berdasarkan Musim', loc='center', fontsize=50)
     ax.tick_params(axis='x', labelsize=35)
     ax.tick_params(axis='y', labelsize=30)
     st.pyplot(fig)
 
-with col2:
-    top_frequency = rfm_summary.sort_values(by='order_count', ascending=False).head(7)
-    fig, ax = plt.subplots(figsize=(10, 6))
+with col2:    
+    fig, ax = plt.subplots(figsize=(30, 20))
 
     sns.barplot(
-        data=top_frequency,
-        x='hour',
-        y='order_count', 
+        data=weather_category,
+        x='weather',
+        y='total_rent', 
         color='tab:blue',
         ax=ax
     )
-    ax.set_ylabel(None)
-    ax.set_xlabel(None)
-    ax.set_title('Frequency', loc='center', fontsize=50)
+    ax.set_ylabel('Rata-rata Penyewa Sepeda')
+    ax.set_xlabel('Kategori Cuaca')
+    ax.set_title('Distribusi Rata-rata Penyewa Sepeda Berdasarkan Cuaca', fontsize=50)
     ax.tick_params(axis='x', labelsize=35)
     ax.tick_params(axis='y', labelsize=30)
     st.pyplot(fig)
 
-with col3:
-    top_monetary = rfm_summary.sort_values(by='revenue', ascending=False).head(7)
-    fig, ax = plt.subplots(figsize=(10, 6))
+with col3:    
+    fig, ax = plt.subplots(figsize=(30, 20))
 
-    sns.barplot(
-        data=top_monetary, 
-        x='hour', 
-        y='revenue', 
+    sns.countplot(        
+        x=hour_category,         
         color='tab:blue',
         ax=ax
     )
-    ax.set_ylabel(None)
-    ax.set_xlabel(None)
-    ax.set_title('Monetary', loc='center', fontsize=50)
+    ax.set_ylabel('Jumlah Penyewa Sepeda')
+    ax.set_xlabel('Kategori Waktu')
+    ax.set_title('Distribusi Penyewa Sepeda Berdasarkan Waktu', fontsize=50)
     ax.tick_params(axis='x', labelsize=35)
     ax.tick_params(axis='y', labelsize=30)
     st.pyplot(fig)
